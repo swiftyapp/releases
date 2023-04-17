@@ -1,0 +1,49 @@
+name: Release Mac App
+
+on: workflow_dispatch
+
+env:
+  TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+  TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+  VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+  ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE }}
+  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+
+jobs:
+  release-macos-application:
+    runs-on: macos-latest
+    steps:
+      - name: Check out desktop app repo
+        uses: actions/checkout@master
+        with:
+          repository: swiftyapp/swifty-pro
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install Rust stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install project dependencies
+        run: yarn install
+
+      - name: 👷‍♂️ Building MacOS application
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
